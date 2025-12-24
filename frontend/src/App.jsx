@@ -5,7 +5,7 @@ import "./App.css";
 
 // === URL бекенда на Render ===
 // Замените на ваш реальный URL после деплоя бекенда Render
-const API_URL = "https://https://opti-mugz.onrender.com/api/optimize";
+const API_URL = "https://opti-mugz.onrender.com/api/optimize";
 
 export default function App() {
   const [nodes, setNodes] = useState(["A", "B", "C"]);
