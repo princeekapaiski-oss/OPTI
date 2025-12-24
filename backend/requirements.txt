@@ -1,0 +1,11 @@
+Flask-SQLAlchemy==3.0.5
+Flask==2.2.5
+alembic==1.13.1
+flask-cors==3.0.10
+flask-jwt-extended==4.5.3
+marshmallow==3.20.1
+networkx==3.1
+psycopg2-binary==2.9.9
+pulp==2.7.0
+python-dotenv==1.0.1
+werkzeug==2.3.7

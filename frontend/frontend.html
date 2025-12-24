@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TextNet Optimizer</title>
+  <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
+  <link href="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+  <style>
+    body { font-family: Arial; margin: 20px; }
+    #network { width: 800px; height: 500px; border: 1px solid lightgray; margin-top: 20px; }
+    input, button { margin: 5px; }
+    .edge-input { margin-bottom: 5px; }
+  </style>
+</head>
+<body>
+  <h1>TextNet Optimizer</h1>
+
+  <h3>Добавить узел</h3>
+  <input type="text" id="nodeName" placeholder="Имя узла (A, B...)">
+  <button onclick="addNode()">Добавить узел</button>
+
+  <h3>Добавить ребро</h3>
+  <input type="text" id="fromNode" placeholder="От узла">
+  <input type="text" id="toNode" placeholder="К узлу">
+  <input type="number" id="capacity" placeholder="Пропускная способность" min="0">
+  <input type="number" id="cost" placeholder="Стоимость" min="0">
+  <button onclick="addEdge()">Добавить ребро</button>
+
+  <button onclick="optimizeNetwork()">Оптимизировать сеть</button>
+
+  <pre id="result"></pre>
+  <div id="network"></div>
+
+  <script>
+    let nodes = [];
+    let edges = [];
+    let network = null;
+
+    function addNode() {
+      const nodeName = document.getElementById("nodeName").value.trim();
+      if (nodeName && !nodes.includes(nodeName)) {
+        nodes.push(nodeName);
+        updateNetwork();
+      }
+    }
+
+    function addEdge() {
+      const from = document.getElementById("fromNode").value.trim();
+      const to = document.getElementById("toNode").value.trim();
+      const capacity = parseFloat(document.getElementById("capacity").value) || 0;
+      const cost = parseFloat(document.getElementById("cost").value) || 1;
+
+      if (from && to && nodes.includes(from) && nodes.includes(to)) {
+        edges.push({from, to, capacity, cost});
+        updateNetwork();
+      }
+    }
+
+    function updateNetwork(flows={}) {
+      const visNodes = nodes.map(n => ({id: n, label: n}));
+      const visEdges = edges.map(e => ({
+        from: e.from,
+        to: e.to,
+        label: flows[`${e.from}->${e.to}`] !== undefined 
+                ? `flow: ${flows[`${e.from}->${e.to}`]}` 
+                : `cap: ${e.capacity}, cost: ${e.cost}`,
+        arrows: "to"
+      }));
+
+      const container = document.getElementById("network");
+      const data = {nodes: visNodes, edges: visEdges};
+      const options = {physics: {enabled: false}};
+      if (!network) {
+        network = new vis.Network(container, data, options);
+      } else {
+        network.setData(data);
+      }
+    }
+
+    async function optimizeNetwork() {
+      if (nodes.length === 0 || edges.length === 0) {
+        alert("Добавьте узлы и рёбра!");
+        return;
+      }
+
+      const response = await fetch("http://127.0.0.1:5000/api/optimize", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({nodes, edges})
+      });
+
+      const result = await response.json();
+      document.getElementById("result").textContent = JSON.stringify(result, null, 2);
+      updateNetwork(result);
+    }
+  </script>
+</body>
+</html>
